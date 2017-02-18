@@ -1,0 +1,106 @@
+\documentclass[fleqn,10pt]{SelfArx} 
+\usepackage[english]{babel} 
+\usepackage{lipsum}
+\usepackage{hyperref}
+\setlength{\columnsep}{0.55cm} % Distance between the two columns of text
+\setlength{\fboxrule}{0.75pt} % Width of the border around the abstract
+
+\definecolor{color1}{RGB}{0,0,90} % Color of the article title and sections
+\definecolor{color2}{RGB}{0,20,20} % Color of the boxes behind the abstract and headings
+
+\usepackage{hyperref} % Required for hyperlinks
+\hypersetup{hidelinks,colorlinks,breaklinks=true,urlcolor=color2,citecolor=color1,linkcolor=color1,bookmarksopen=false,pdftitle={Title},pdfauthor={Author}}
+
+\JournalInfo{ENSAI course, Masters in Big Data, 2016} % Journal information
+\Archive{} % Additional notes (e.g. copyright, DOI, review/research article)
+
+\PaperTitle{} % Article title
+
+\Authors{Anurag MIGLANI\textsuperscript{1}*, Thomas ZAMOJSKI\textsuperscript{2}} 
+\affiliation{*\textbf{Corresponding author}: miglanianurag@protonmail.com} 
+\Keywords{MP/OMP --- IHT --- Sparse} 
+\newcommand{\keywordname}{Keywords} 
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT
+%----------------------------------------------------------------------------------------
+
+\Abstract{The project includes the implementation in Matlab of 3 recovery algorithms: matching pursuit (MP), orthogonal matching pursuit (OMP) and iterative hard thresholding (IHT). 
+}
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\flushbottom % Makes all text pages the same height
+
+\maketitle % Print the title and abstract box
+
+\tableofcontents % Print the contents section
+
+\thispagestyle{empty} % Removes page numbering from the first page
+
+
+\section{Algorithms} % The \section*{} command stops section numbering
+
+The project includes the implementation in Matlab of 3 recovery algorithms: matching pursuit (MP), orthogonal matching pursuit (OMP) and iterative hard thresholding (IHT). The unit tests were performed as shown in the sample code using random gaussian matrices. Unfortunately, even OMP could not recover 3-sparse vectors. Actually, OMP could sometimes recover the support, but still failed to have the same solutions. The design of the matrix is therefore not appropriate as there is no exact recovery guarantee for 3-sparse vectors. \\
+
+We found that IHT tends to diverge. We therefore included a decreasing learning rate $  \mu_{k}= \mu/k^{0.2} $to try to make the algorithm converge better, but even that was sometimes not sufficient.
+
+%------------------------------------------------
+
+\section{Image Restoration}
+\subsection{Modeling}
+Here our image v is represented in a dictionary D: v = Dx. We will make x a
+sparse vector. Some pixels gets dropped. This is a linear condition, and therefore can be represented as applying a measurement matrix M . \\
+Finally, small noise $\epsilon$ is added to the pixture. The model becomes:
+\begin{center}
+$ y = M Dx + \epsilon $
+\end{center}
+The image impainting consists in recovering the missing pixels. This is modeled by the problem: 
+\begin{center}
+$argmin_{z} ||z||_{0}$ subject to $MDx = MD_{z}.$
+\end{center}
+Image denoising and inpainting of a noisy image are both modeled with the following sparse recovery problem:
+\begin{center}
+$argmin_{z} ||z||_{0}$ subject to $||y - MDz||_{2} \le \eta.$
+\end{center}
+where $\eta$ is a small error.
+\subsection{Data Generation}
+A random dictionary is generated with the provided code in createDic-
+tionary.m. It is 5 times redundant. The image is also generated with the provided code in createImage.m. For the missing pixels, the code was also provided. One has to note only that removing pixels reduces the dimension of the data. Therefore, we keep another copy with zeros added at the right position to display the image with the missing pixels. In the recovery, we have no information on the location of the pixels.\\
+We have to make sure that $A = MD$ has no zero columns. If it did, then at that index we could put anything in $z$, making even the recovery algorithm \textit{ ill-posed}. Another problem is that the algorithms would always pick that index to start with, and the pseudo inverse would fail. 
+\begin{figure*}[ht]\centering % Using \begin{figure*} makes the figure take up the entire width of the page
+\includegraphics[width=0.5\linewidth]{firgure1.png}
+\caption{Image with 10 sparse, 70\% missing pixels, 0.05 variance gaussian noise.}
+\label{fig:view1}
+\end{figure*}
+\begin{figure*}[ht]\centering % Using \begin{figure*} makes the figure take
+\includegraphics[width=0.5\linewidth]{figure2.png}
+\caption{Image with 10 sparse, 30\% missing pixels, 0.25 variance gaussian noise.}
+\label{fig:view2}
+\end{figure*}
+
+We include now the visualisation of a few images with different choices of parameters in Figure~\ref{fig:view1} and and Figure~\ref{fig:view2}.\\
+
+We test the 3 algorithms on an image with 70\% pixels lost. The recovery is shown along side the original image in Figure~\ref{fig:view3}. OMP performs very well, IHT as mentioned has divergence issues, shown by the black part of the image. Matching pursuit is doing better than we expected. If we add noise however, MP is now doing less good, OMP gets a little confused but still performs relatively well. Figure~\ref{fig:view4} shows the performances. Note also that OMP is very fast, but that could be because we know a priori the sparsity level, so that it does not have to loop so much. We ran MP with 1000 iterations, and still is fast. \\
+
+As for the peak signal-to-noise-ratio, the values gave 64.56 for MP and 71.92 for OMP. The supports they recovered though were not the same as the groundtruth: only the first index was correct, after MP and OMP got confused. It does not necessarily impact the recovery as we suspect there are many
+sparse solutions to the recovery problem.\\	
+
+Finally, we have also included in the code the running of the above experiments tweaking with the parameters such as percentage of pixels dropped.
+%------------------------------------------------
+\begin{figure*}[ht]\centering % Using \begin{figure*} makes the figure take
+\includegraphics[width=0.5\linewidth]{figure3.png}
+\caption{Recovery image with 70\% missing pixels.}
+\label{fig:view3}
+\end{figure*}
+
+\begin{figure*}[ht]\centering % Using \begin{figure*} makes the figure take
+\includegraphics[width=0.5\linewidth]{figure4.png}
+\caption{Recovery image with 70\% missing pixels.}
+\label{fig:view4}
+\end{figure*}
+
+%----------------------------------------------------------------------------------------
+
+\end{document}
